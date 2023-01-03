@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 class BookController extends AbstractController
 {
@@ -50,10 +51,7 @@ class BookController extends AbstractController
     {
         $em->remove($book);
         $em->flush();
-        return new JsonResponse(
-            null,
-            Response::HTTP_NO_CONTENT
-        );
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     // Create Book by ID
@@ -66,7 +64,6 @@ class BookController extends AbstractController
 
         // idAuthor takes value OR set value to NULL
         $idAuthor = $content["idAuthor"] ?? -1;
-
         $book->setAuthor($authorRepository->find($idAuthor));
 
         $em->persist($book);
@@ -81,5 +78,23 @@ class BookController extends AbstractController
             ["Location" => $location],
             true
         );
+    }
+
+    // Update Book's data by ID
+    #[Route('/api/books/{id}', name: 'updateBook', methods: ['PUT'])]
+    public function updateBook(Request $request, SerializerInterface $serializer, Book $currentBook, EntityManagerInterface $em, AuthorRepository $authorRepository): JsonResponse
+    {
+        $updatedBook = $serializer->deserialize($request->getContent(), Book::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $currentBook]);
+
+        $content = $request->toArray();
+
+        // idAuthor takes value OR set value to NULL
+        $idAuthor = $content["idAuthor"] ?? -1;
+        $updatedBook->setAuthor($authorRepository->find($idAuthor));
+
+        $em->persist($updatedBook);
+        $em->flush();
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }
