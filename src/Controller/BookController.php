@@ -12,11 +12,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class BookController extends AbstractController
 {
-    #[Route('/api/books', name: 'book', methods: ['GET'])]
+    #[Route('/api/books', name: 'allBook', methods: ['GET'])]
     public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer): JsonResponse
     {
         $bookList = $bookRepository->findAll();
-        $jsonBookList = $serializer->serialize($bookList, 'json');
+        $jsonBookList = $serializer->serialize($bookList, 'json', ['groups' => 'getBooks']);
 
         return new JsonResponse(
             $jsonBookList,
@@ -26,10 +26,10 @@ class BookController extends AbstractController
         );
     }
 
-    #[Route('/api/books/{id}', name: 'specificBook', methods: ['GET'])]
-    public function getSpecificBook(Book $book, SerializerInterface $serializer): JsonResponse
+    #[Route('/api/books/{id}', name: 'book', methods: ['GET'])]
+    public function getBook(Book $book, SerializerInterface $serializer): JsonResponse
     {
-        $jsonBook = $serializer->serialize($book, 'json');
+        $jsonBook = $serializer->serialize($book, 'json', ['groups' => 'getBooks']);
         return new JsonResponse(
             $jsonBook,
             Response::HTTP_OK,
