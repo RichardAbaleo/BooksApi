@@ -12,7 +12,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class AuthorController extends AbstractController
 {
-    #[Route('/api/authors', name: 'allAuthor', methods: ['GET'])]
+    // Find all Authors
+    #[Route('/api/authors', name: 'allAuthors', methods: ['GET'])]
     public function getAllAuthors(AuthorRepository $authorRepository, SerializerInterface $serializer): JsonResponse
     {
         $authorList = $authorRepository->findAll();
@@ -26,6 +27,7 @@ class AuthorController extends AbstractController
         );
     }
 
+    // Find Author by ID
     #[Route('/api/authors/{id}', name: 'author', methods: ['GET'])]
     public function getAuthor(Author $author, SerializerInterface $serializer): JsonResponse
     {
