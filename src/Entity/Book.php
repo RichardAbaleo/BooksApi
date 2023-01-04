@@ -6,6 +6,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\BookRepository;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 class Book
@@ -18,6 +19,8 @@ class Book
 
     #[ORM\Column(length: 255)]
     #[Groups(["getBooks", "getAuthors"])]
+    #[Assert\NotBlank(message: "value is required")]
+    #[Assert\Length(min: 1, max: 255, minMessage: "lenght must be at least of {{ limit }} characters", maxMessage: " lenght must be less than {{ limit }} characters")]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

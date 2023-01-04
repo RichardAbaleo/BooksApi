@@ -13,7 +13,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class BookController extends AbstractController
 {
@@ -56,7 +58,7 @@ class BookController extends AbstractController
 
     // Create Book by ID
     #[Route('/api/books', name: "createBook", methods: ['POST'])]
-    public function createBook(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, AuthorRepository $authorRepository): JsonResponse
+    public function createBook(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, AuthorRepository $authorRepository, ValidatorInterface $validator): JsonResponse
     {
         $book = $serializer->deserialize($request->getContent(), Book::class, 'json');
 
@@ -65,6 +67,12 @@ class BookController extends AbstractController
         // idAuthor takes value OR set value to NULL
         $idAuthor = $content["idAuthor"] ?? -1;
         $book->setAuthor($authorRepository->find($idAuthor));
+
+        // handles error(s)
+        $errors = $validator->validate($book);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
 
         $em->persist($book);
         $em->flush();
@@ -82,7 +90,7 @@ class BookController extends AbstractController
 
     // Update Book's data by ID
     #[Route('/api/books/{id}', name: 'updateBook', methods: ['PUT'])]
-    public function updateBook(Request $request, SerializerInterface $serializer, Book $currentBook, EntityManagerInterface $em, AuthorRepository $authorRepository): JsonResponse
+    public function updateBook(Request $request, SerializerInterface $serializer, Book $currentBook, EntityManagerInterface $em, AuthorRepository $authorRepository, ValidatorInterface $validator): JsonResponse
     {
         $updatedBook = $serializer->deserialize($request->getContent(), Book::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $currentBook]);
 
@@ -91,6 +99,13 @@ class BookController extends AbstractController
         // idAuthor takes value OR set value to NULL
         $idAuthor = $content["idAuthor"] ?? -1;
         $updatedBook->setAuthor($authorRepository->find($idAuthor));
+
+        // handles error(s)
+        $errors = $validator->validate($updatedBook);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
+
 
         $em->persist($updatedBook);
         $em->flush();
